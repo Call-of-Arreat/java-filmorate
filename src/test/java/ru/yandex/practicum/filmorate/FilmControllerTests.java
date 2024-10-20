@@ -31,10 +31,7 @@ public class FilmControllerTests {
         film.setDuration(1);
         film.setName("300 спартанцев");
         film.setReleaseDate(LocalDate.of(2007, 3, 9));
-        film.setDescription("«300 спартанцев» (англ. 300) — американский эпический исторический боевик режиссёра " +
-                "Зака Снайдера, вышедший в прокат в 2007 году. Экранизация комикса Фрэнка Миллера и Линн Варли «300» " +
-                "о битве трёхсот спартанцев под командованием царя Спарты царя Леонида с многотысячной персидской" +
-                " армией при Фермопилах.)");
+        film.setDescription("«300 спартанцев»".repeat(300));
         Exception exception = Assertions.assertThrows(ValidationException.class, () -> filmController.addFilm(film));
         Assertions.assertEquals("Описание фильма не может превышать 200 символов", exception.getMessage());
     }

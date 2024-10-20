@@ -1,8 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -11,21 +15,23 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+
+@Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private final HashMap<Long, Film> films = new HashMap<>();
+    private final Map<Long, Film> films = new HashMap<>();
     private Long id = 0L;
     public static final Integer MAX_DESCRIPTION_LENGTH = 200;
     public static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-    private static final Logger LOG = LoggerFactory.getLogger(FilmController.class);
 
     @GetMapping
     public List<Film> getFilms() {
-        LOG.info("Пришел GET запрос /films");
+        log.info("Пришел GET запрос /films");
         List<Film> filmList = new ArrayList<>(films.values());
-        LOG.info("Отправлен ответ GET /films с телом: {}", filmList);
+        log.info("Отправлен ответ GET /films с телом: {}", filmList);
         return filmList;
     }
 
@@ -39,36 +45,37 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
-        LOG.info("Пришел PUT запрос /films с телом: {}", film);
+        log.info("Пришел PUT запрос /films с телом: {}", film);
         Long filmId = film.getId();
-        if (films.containsKey(filmId)) {
-            filmValidation(film);
-            films.put(filmId, film);
-            LOG.info("Фильм обновлен: {}", film);
-            LOG.info("Отправлен ответ PUT /films с телом: {}", film);
-            return film;
+        if (!films.containsKey(filmId)) {
+            log.warn("Фильм не найден");
+            throw new NotFoundException("Фильм с id " + film.getId() + " не найден");
         }
-        LOG.warn("Фильм не найден");
-        throw new NotFoundException("Фильм с id " + film.getId() + " не найден");
+        filmValidation(film);
+        films.put(filmId, film);
+        log.info("Фильм обновлен: {}", film);
+        log.info("Отправлен ответ PUT /films с телом: {}", film);
+        return film;
     }
+
 
     private static void filmValidation(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
-            LOG.warn("Название фильма пустое");
+            log.warn("Название фильма пустое");
             throw new ValidationException("Название фильма не может быть пустым");
         }
         if (film.getDescription() != null) {
             if (film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-                LOG.warn("Описание фильма слишком длинное");
+                log.warn("Описание фильма слишком длинное");
                 throw new ValidationException("Описание фильма не может превышать " + MAX_DESCRIPTION_LENGTH + " символов");
             }
         }
         if (film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
-            LOG.warn("Дата выхода фильма раньше минимума");
+            log.warn("Дата выхода фильма раньше минимума");
             throw new ValidationException("Дата релиза фильма не может быть раньше " + MIN_RELEASE_DATE);
         }
-        if (film.getDuration() < 0) {
-            LOG.warn("Продолжительность фильма отрицательная");
+        if (film.getDuration() <= 0) {
+            log.warn("Продолжительность фильма отрицательная или равна нулю");
             throw new ValidationException("Продолжительность фильма должна быть положительным числом");
         }
     }
