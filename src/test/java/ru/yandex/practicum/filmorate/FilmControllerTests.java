@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,19 +22,18 @@ public class FilmControllerTests {
         film.setDuration(1);
         film.setName("");
         film.setReleaseDate(LocalDate.of(1994, 1, 1));
-        Exception exception = Assertions.assertThrows(ValidationException.class, () -> filmController.addFilm(film));
-        Assertions.assertEquals("Название фильма не может быть пустым", exception.getMessage());
+        Assertions.assertThrows(ConstraintViolationException.class, () -> filmController.addFilm(film));
+
     }
 
     @Test
     public void ifFilmDescriptionLengthIsMoreThen200ThenThrowException() {
         Film film = new Film();
         film.setDuration(1);
-        film.setName("300 спартанцев");
-        film.setReleaseDate(LocalDate.of(2007, 3, 9));
-        film.setDescription("«300 спартанцев»".repeat(300));
-        Exception exception = Assertions.assertThrows(ValidationException.class, () -> filmController.addFilm(film));
-        Assertions.assertEquals("Описание фильма не может превышать 200 символов", exception.getMessage());
+        film.setName("300 Спартанцев");
+        film.setReleaseDate(LocalDate.of(2012, 1, 1));
+        film.setDescription("300 Спартанцев".repeat(300));
+        Assertions.assertThrows(ConstraintViolationException.class, () -> filmController.addFilm(film));
     }
 
     @Test
@@ -52,8 +52,7 @@ public class FilmControllerTests {
         film.setName("Побег из Шоушенка");
         film.setDuration(-1);
         film.setReleaseDate(LocalDate.of(1994, 1, 1));
-        Exception exception = Assertions.assertThrows(ValidationException.class, () -> filmController.addFilm(film));
-        Assertions.assertEquals("Продолжительность фильма должна быть положительным числом", exception.getMessage());
+        Exception exception = Assertions.assertThrows(ConstraintViolationException.class, () -> filmController.addFilm(film));
     }
 
 }
